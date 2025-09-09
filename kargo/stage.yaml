@@ -23,6 +23,20 @@ spec:
       steps:
       - task: 
           name: standard-process
+      - uses: jira
+        as: create-deployment-issue
+        config:
+          credentials:
+            secretName: jira-credentials
+          createIssue:
+            projectKey: SCRUM
+            summary: "Deploy ${{ imageFrom(vars.imageRepo).Tag }} to ${{ ctx.stage }}"
+            description: "Deploying ${{ imageFrom(vars.imageRepo).RepoURL }}:${{ imageFrom(vars.imageRepo).Tag }} to ${{ ctx.stage }} environment. Promotion ID: ${{ ctx.promotion }}. Freight: ${{ ctx.targetFreight.name }}."
+            issueType: Task
+            labels:
+              - deployment
+              - "${{ ctx.stage }}"
+              - "release-${{ imageFrom(vars.imageRepo).Tag }}"
       - uses: http
         as: cat-facts
         config:
@@ -61,6 +75,14 @@ spec:
         name: imageRepo
         value: ghcr.io/emilyxinyi/guestbook
       steps:
+      - uses: jira
+        as: add-progress-comment
+        config:
+          credentials:
+            secretName: jira-credentials
+          commentOnIssue:
+            issueKey: "${{ freightMetadata(ctx.targetFreight.name, 'jira-issue-key') }}"
+            body: "Promotion started. Environment: ${{ ctx.stage }}. Image: ${{ imageFrom(vars.imageRepo).RepoURL }}:${{ imageFrom(vars.imageRepo).Tag }}. Promotion: ${{ ctx.promotion }}. Status: Deploying to ${{ ctx.stage }} environment..."
       - uses: git-clone
         config:
           repoURL: https://github.com/emilyxinyi/kargo.git
@@ -102,6 +124,22 @@ spec:
           - name: guestbook-uat
             sources:
             - repoURL: https://github.com/emilyxinyi/kargo.git
+      - uses: jira
+        as: wait-for-status
+        config:
+          credentials:
+            secretName: jira-credentials
+          waitForStatus:
+            issueKey: "${{ freightMetadata(ctx.targetFreight.name, 'jira-issue-key') }}"
+            expectedStatus: "STAGED"
+      - uses: jira
+        as: delete-progress-comment
+        config:
+          credentials:
+            secretName: jira-credentials
+          deleteComment:
+            issueKey: "${{ freightMetadata(ctx.targetFreight.name, 'jira-issue-key') }}"
+            commentID: "${{ quote(outputs['add-progress-comment'].commentID) }}"
       # - uses: http
       #   as: snow
       #   config:
@@ -215,17 +253,10 @@ spec:
       #   as: commitNumber
       #   config:
       #     commitNumber: ${{ outputs['wait-for-pr'].commit }}
-      - uses: argocd-update
-        config:
-          apps:
-          - name: guestbook-prod-useast
-            sources:
-            - repoURL: https://github.com/emilyxinyi/kargo.git
-              desiredRevision: ${{ outputs['wait-for-pr'].commit }}
       - uses: compose-output
         as: commit-link
         config:
-          url: https://github.com/emilyxinyi/kargo/commit/${{ outputs['wait-for-pr'].commit }}
+          url: https://github.com/emilyxinyi/kargo/pull/${{ outputs['wait-for-pr'].pr.id }}
       - uses: http
         as: slack-message
         config:
@@ -252,6 +283,32 @@ spec:
           outputs:
           - name: status
             fromExpression: response.status
+      - uses: jira
+        as: search-issue
+        config:
+          credentials:
+            secretName: jira-credentials
+          searchIssue:
+            jql: "created <= 1d and labels IN (release-${{ imageFrom(vars.imageRepo).Tag }}) ORDER BY created DESC"
+            expectMultiple: true
+            fields:
+              - key
+            # Wait for final production approval
+      - uses: jira
+        as: wait-for-approval
+        config:
+          credentials:
+            secretName: jira-credentials
+          waitForStatus:
+            issueKey: ${{ outputs['search-issue'].key }}
+            expectedStatus: RELEASED
+      - uses: argocd-update
+        config:
+          apps:
+          - name: guestbook-prod-useast
+            sources:
+            - repoURL: https://github.com/emilyxinyi/kargo.git
+              desiredRevision: ${{ outputs['wait-for-pr'].commit }}
 ---
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage

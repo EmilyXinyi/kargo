@@ -11,6 +11,6 @@ spec:
   - stageSelector:
       name: uat
     autoPromotionEnabled: true
-  - stageSelector:
-      name: prod-uswest
-    autoPromotionEnabled: true
+  # - stageSelector:
+  #     name: prod-uswest
+  #   autoPromotionEnabled: true
