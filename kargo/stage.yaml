@@ -242,21 +242,10 @@ spec:
           sourceBranch: ${{ outputs.push.branch }}
           # targetBranch: stage/${{ ctx.stage }}
           targetBranch: stage/prod-useast
-      - uses: git-wait-for-pr
-        as: wait-for-pr
-        config:
-          repoURL: https://github.com/emilyxinyi/kargo.git
-          prNumber: ${{ outputs['open-pr'].pr.id }}
-        # spec: 
-        #   interval: "5m0s"
-      # - uses: compose-output
-      #   as: commitNumber
-      #   config:
-      #     commitNumber: ${{ outputs['wait-for-pr'].commit }}
       - uses: compose-output
-        as: commit-link
+        as: pr-link
         config:
-          url: https://github.com/emilyxinyi/kargo/pull/${{ outputs['wait-for-pr'].pr.id }}
+          url: https://github.com/emilyxinyi/kargo/pull/${{ outputs['open-pr'].pr.id }}
       - uses: http
         as: slack-message
         config:
@@ -275,11 +264,22 @@ spec:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "PR merged: " + outputs['commit-link'].url
+                    "text": "PR created: " + outputs['pr-link'].url
                   }
                 }
               ]
             }) }}
+      - uses: git-wait-for-pr
+        as: wait-for-pr
+        config:
+          repoURL: https://github.com/emilyxinyi/kargo.git
+          prNumber: ${{ outputs['open-pr'].pr.id }}
+        # spec: 
+        #   interval: "5m0s"
+      # - uses: compose-output
+      #   as: commitNumber
+      #   config:
+      #     commitNumber: ${{ outputs['wait-for-pr'].commit }}
           outputs:
           - name: status
             fromExpression: response.status
