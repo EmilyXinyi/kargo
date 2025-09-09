@@ -264,11 +264,14 @@ spec:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "PR created: " + outputs['pr-link'].url
+                    "text": "PR merged: " + outputs['pr-link'].url
                   }
                 }
               ]
             }) }}
+          outputs:
+          - name: status
+            fromExpression: response.status
       - uses: git-wait-for-pr
         as: wait-for-pr
         config:
@@ -280,9 +283,6 @@ spec:
       #   as: commitNumber
       #   config:
       #     commitNumber: ${{ outputs['wait-for-pr'].commit }}
-          outputs:
-          - name: status
-            fromExpression: response.status
       - uses: jira
         as: search-issue
         config:
