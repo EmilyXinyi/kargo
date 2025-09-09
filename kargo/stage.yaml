@@ -264,7 +264,7 @@ spec:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "PR merged: " + outputs['pr-link'].url
+                    "text": "PR created: " + outputs['pr-link'].url
                   }
                 }
               ]
