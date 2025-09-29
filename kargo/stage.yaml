@@ -118,12 +118,6 @@ spec:
           path: ./out
           targetBranch: stage/uat
           # generateTargetBranch: true
-      - uses: argocd-update
-        config:
-          apps:
-          - name: guestbook-uat
-            sources:
-            - repoURL: https://github.com/emilyxinyi/kargo.git
       - uses: jira
         as: wait-for-status
         config:
@@ -132,6 +126,12 @@ spec:
           waitForStatus:
             issueKey: "${{ freightMetadata(ctx.targetFreight.name, 'jira-issue-key') }}"
             expectedStatus: "STAGED"
+      - uses: argocd-update
+        config:
+          apps:
+          - name: guestbook-uat
+            sources:
+            - repoURL: https://github.com/emilyxinyi/kargo.git
       - uses: jira
         as: delete-progress-comment
         config:
