@@ -118,6 +118,17 @@ spec:
           path: ./out
           targetBranch: stage/uat
           # generateTargetBranch: true
+      - uses: git-open-pr
+        as: open-pr
+        config:
+          repoURL: https://github.com/emilyxinyi/kargo.git
+          createTargetBranch: true
+          sourceBranch: ${{ outputs.push.branch }}
+          targetBranch: stage/uat
+      - uses: git-merge-pr
+        config: 
+          repoURL: https://github.com/emilyxinyi/kargo.git
+          prNumber: ${{ outputs['open-pr'].pr.id }}
       - uses: jira
         as: wait-for-status
         config:
