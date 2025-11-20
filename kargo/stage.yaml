@@ -257,32 +257,44 @@ spec:
         as: pr-link
         config:
           url: https://github.com/emilyxinyi/kargo/pull/${{ outputs['open-pr'].pr.id }}
-      - uses: http
+      # - uses: http
+      #   as: slack-message
+      #   config:
+      #     method: POST
+      #     url: https://slack.com/api/chat.postMessage
+      #     headers:
+      #     - name: Authorization
+      #       value: Bearer ${{ secret('slack').token }}
+      #     - name: Content-Type
+      #       value: application/json
+      #     body: |
+      #       ${{ quote({
+      #         "channel": "C08CPA2KB9A",
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "text": {
+      #               "type": "mrkdwn",
+      #               "text": "PR created: " + outputs['pr-link'].url
+      #             }
+      #           }
+      #         ]
+      #       }) }}
+      #     outputs:
+      #     - name: status
+      #       fromExpression: response.status
+      - uses: send-message 
         as: slack-message
-        config:
-          method: POST
-          url: https://slack.com/api/chat.postMessage
-          headers:
-          - name: Authorization
-            value: Bearer ${{ secret('slack').token }}
-          - name: Content-Type
-            value: application/json
-          body: |
-            ${{ quote({
-              "channel": "C08CPA2KB9A",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "PR created: " + outputs['pr-link'].url
-                  }
-                }
-              ]
-            }) }}
-          outputs:
-          - name: status
-            fromExpression: response.status
+        config: 
+          channel: 
+            kind: MessageChannel
+            name: slack
+          message: | 
+            blocks: 
+              - type: section
+                text: 
+                  type: mrkdwn
+                  text: "PR created: " + outputs['pr-link'].url
       - uses: git-wait-for-pr
         as: wait-for-pr
         config:
