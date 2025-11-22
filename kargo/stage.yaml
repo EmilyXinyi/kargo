@@ -37,6 +37,13 @@ spec:
               - deployment
               - "${{ ctx.stage }}"
               - "release-${{ imageFrom(vars.imageRepo).Tag }}"
+      - uses: set-metadata
+        config: 
+          updates: 
+            - kind: Freight
+              name: "${{ ctx.targetFreight.name }}"
+              values: 
+                nickname: "${{ ctx.targetFreight.name }}'s pikachu"
       - uses: http
         as: cat-facts
         config:
@@ -359,3 +366,7 @@ spec:
       steps:
       - task: 
           name: standard-process
+      - uses: compose-output
+        as: get-freight-nickname
+        config:
+          frieghtNickname: ${{ freightMetadata(ctx.targetFreight.name).nickname }}
