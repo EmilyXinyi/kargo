@@ -136,6 +136,30 @@ spec:
         config: 
           repoURL: https://github.com/emilyxinyi/kargo.git
           prNumber: ${{ outputs['open-pr'].pr.id }}
+      - uses: compose-output
+        as: branch-name
+        config:
+          branchName: ${{ outputs.push.branch }}
+      - uses: gha-dispatch-workflow
+        as: dispatch-deployment
+        config:
+          credentials:
+            secretName: github-credentials
+          owner: emilyxinyi
+          repo: kargo
+          workflowFile: delete-branch.yaml
+          ref: main
+          inputs:
+            branch_name: ${{ outputs['branch-name'].branchName }}
+          timeout: 120
+      - uses: gha-wait-for-workflow
+        config:
+          credentials:
+            secretName: github-credentials
+          owner: emilyxinyi
+          repo: kargo
+          runID: "${{ outputs['dispatch-deployment'].runID }}"
+          expectedConclusion: success
       - uses: jira
         as: wait-for-status
         config:
