@@ -296,12 +296,7 @@ spec:
           channel: 
             kind: MessageChannel
             name: slack
-          message: | 
-            blocks: 
-              - type: section
-                text: 
-                  type: mrkdwn
-                  text: "PR created: " + outputs['pr-link'].url
+          message: "text: PR created:  + ${{ outputs['pr-link'].url }}"
       - uses: git-wait-for-pr
         as: wait-for-pr
         config:
