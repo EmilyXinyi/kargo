@@ -385,6 +385,11 @@ spec:
       steps:
       - task: 
           name: standard-process
+      - uses: hello-world
+        as: my-custom-step
+        config: 
+          hello: "hi"
+          world: "kargo"
       - uses: compose-output
         as: get-freight-nickname
         config:
