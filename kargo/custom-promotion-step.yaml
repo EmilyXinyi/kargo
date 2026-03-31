@@ -6,11 +6,11 @@ spec:
   ## REQUIRED: image to execute the command in
   image: ubuntu
   ## REQUIRED: command to run
-  command: ["sh", "-c", "sleep 5; echo 'hello=${{ HELLO }}-${{ config.world }}' > $KARGO_OUTPUT"]
+  command: ["sh", "-c", "sleep 5; echo 'hello=${{ config.hello }}-${{ config.world }}' > $KARGO_OUTPUT"]
   ## OPTIONAL: additional environment to provide to the command
-  env:
-    - name: HELLO
-      value: ${{ config.hello }}
+  # env:
+  #   - name: HELLO
+  #     value: ${{ config.hello }}
 # ## OPTIONAL: output capture configuration
 #   output:
 #     source:
